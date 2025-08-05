@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/components/auth/AuthProvider';
 import { 
   Calendar, 
   Users, 
@@ -11,7 +12,9 @@ import {
   Menu,
   Home,
   MessageCircle,
-  Sparkles
+  Sparkles,
+  LogOut,
+  User
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -32,6 +35,7 @@ const menuItems = [
 
 export const Sidebar = ({ activeModule, onModuleChange }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { user, logout } = useAuth();
 
   return (
     <div className={cn(
@@ -88,18 +92,43 @@ export const Sidebar = ({ activeModule, onModuleChange }: SidebarProps) => {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-border/50">
+      <div className="p-4 border-t border-border/50 space-y-3">
+        {/* User Info */}
         <div className={cn("flex items-center gap-3", isCollapsed && "justify-center")}>
           <div className="w-8 h-8 bg-gradient-secondary rounded-full flex items-center justify-center">
-            <span className="text-sm font-medium text-secondary-accent">A</span>
+            <User className="w-4 h-4 text-secondary-accent" />
           </div>
-          {!isCollapsed && (
+          {!isCollapsed && user && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">Admin</p>
-              <p className="text-xs text-muted-foreground truncate">admin@beleza.com</p>
+              <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
+              <p className="text-xs text-muted-foreground truncate capitalize">{user.role}</p>
             </div>
           )}
         </div>
+
+        {/* Logout Button */}
+        {!isCollapsed && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={logout}
+            className="w-full justify-start gap-2 h-9 border-border/50 hover:bg-destructive/10 hover:border-destructive/30 hover:text-destructive"
+          >
+            <LogOut className="w-4 h-4" />
+            Sair
+          </Button>
+        )}
+        
+        {isCollapsed && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={logout}
+            className="w-8 h-8 p-0 border-border/50 hover:bg-destructive/10 hover:border-destructive/30 hover:text-destructive"
+          >
+            <LogOut className="w-4 h-4" />
+          </Button>
+        )}
       </div>
     </div>
   );

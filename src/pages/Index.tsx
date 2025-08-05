@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { AuthProvider } from '@/components/auth/AuthProvider';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Dashboard } from '@/components/modules/Dashboard';
 import { Agendamentos } from '@/components/modules/Agendamentos';
@@ -6,7 +8,7 @@ import { Clientes } from '@/components/modules/Clientes';
 import { Estoque } from '@/components/modules/Estoque';
 import { Financeiro } from '@/components/modules/Financeiro';
 
-const Index = () => {
+const AdminPanel = () => {
   const [activeModule, setActiveModule] = useState('dashboard');
 
   const renderModule = () => {
@@ -41,6 +43,16 @@ const Index = () => {
         </div>
       </main>
     </div>
+  );
+};
+
+const Index = () => {
+  return (
+    <AuthProvider>
+      <ProtectedRoute>
+        <AdminPanel />
+      </ProtectedRoute>
+    </AuthProvider>
   );
 };
 
