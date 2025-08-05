@@ -2,41 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Design system for aesthetic clinic management - elegant and professional */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Background and surface colors */
+    --background: 330 25% 98%;
+    --foreground: 330 15% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 330 15% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 330 15% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary brand colors - elegant pink/purple */
+    --primary: 320 35% 65%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 320 45% 85%;
+    --primary-dark: 320 40% 45%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary colors - soft blue accent */
+    --secondary: 200 25% 95%;
+    --secondary-foreground: 200 15% 25%;
+    --secondary-accent: 200 60% 70%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted colors */
+    --muted: 330 15% 96%;
+    --muted-foreground: 330 10% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent colors */
+    --accent: 320 25% 92%;
+    --accent-foreground: 320 20% 25%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Status colors */
+    --success: 140 50% 55%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 45 90% 60%;
+    --warning-foreground: 45 90% 15%;
+    
+    --destructive: 0 70% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Border and input */
+    --border: 330 20% 90%;
+    --input: 330 20% 94%;
+    --ring: 320 35% 65%;
 
-    --radius: 0.5rem;
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(320 35% 65%), hsl(280 40% 70%));
+    --gradient-secondary: linear-gradient(135deg, hsl(200 60% 70%), hsl(220 50% 75%));
+    --gradient-background: linear-gradient(180deg, hsl(330 25% 98%), hsl(320 20% 96%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(330 15% 98%));
+
+    /* Shadows */
+    --shadow-elegant: 0 4px 20px -2px hsl(320 35% 65% / 0.1);
+    --shadow-card: 0 2px 10px -1px hsl(330 15% 15% / 0.08);
+    --shadow-popup: 0 10px 40px -4px hsl(320 35% 65% / 0.15);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 
