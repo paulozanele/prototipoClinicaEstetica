@@ -3,6 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useToast } from '@/hooks/use-toast';
+import { ProdutoForm } from '@/components/forms/ProdutoForm';
+import { ConfirmDeleteModal } from '@/components/modals/ConfirmDeleteModal';
+import { MovimentarEstoqueModal } from '@/components/modals/MovimentarEstoqueModal';
 import { 
   Package, 
   Plus, 
@@ -18,11 +24,17 @@ import {
 } from 'lucide-react';
 
 export const Estoque = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategoria, setFilterCategoria] = useState('todos');
+  const [showForm, setShowForm] = useState(false);
+  const [editingProduto, setEditingProduto] = useState<any>(null);
+  const [deletingProduto, setDeletingProduto] = useState<any>(null);
+  const [movimentandoProduto, setMovimentandoProduto] = useState<any>(null);
+  const [showEntrada, setShowEntrada] = useState(false);
 
-  // Mock data - em produção viria do localStorage
-  const produtos = [
+  // Mock data inicial
+  const initialProdutos = [
     {
       id: 1,
       nome: 'Ácido Hialurônico 2ml',
@@ -100,6 +112,8 @@ export const Estoque = () => {
     }
   ];
 
+  const [produtos, setProdutos] = useLocalStorage('produtos', initialProdutos);
+
   const categorias = [
     { value: 'todos', label: 'Todas' },
     { value: 'injetavel', label: 'Injetáveis' },
@@ -147,6 +161,65 @@ export const Estoque = () => {
     margemMediaLucro: produtos.reduce((total, p) => total + calcularMargemLucro(p.precoCompra, p.precoVenda), 0) / produtos.length
   };
 
+  const handleSaveProduto = (produtoData: any) => {
+    if (editingProduto) {
+      setProdutos(prev => prev.map(p => 
+        p.id === editingProduto.id ? produtoData : p
+      ));
+    } else {
+      setProdutos(prev => [...prev, produtoData]);
+    }
+    setShowForm(false);
+    setEditingProduto(null);
+  };
+
+  const handleEditProduto = (produto: any) => {
+    setEditingProduto(produto);
+    setShowForm(true);
+  };
+
+  const handleDeleteProduto = (produto: any) => {
+    setDeletingProduto(produto);
+  };
+
+  const handleMovimentarProduto = (produto: any) => {
+    setMovimentandoProduto(produto);
+  };
+
+  const handleConfirmMovimentacao = (movimentacao: any) => {
+    const produtoId = movimentacao.produtoId;
+    const novaQuantidade = movimentacao.tipo === 'entrada' 
+      ? movimentandoProduto.quantidade + movimentacao.quantidade
+      : movimentandoProduto.quantidade - movimentacao.quantidade;
+
+    const novoStatus = novaQuantidade === 0 ? 'zerado' : 
+                      novaQuantidade <= movimentandoProduto.estoqueMinimo ? 'baixo' : 'normal';
+
+    setProdutos(prev => prev.map(p => 
+      p.id === produtoId 
+        ? { 
+            ...p, 
+            quantidade: novaQuantidade, 
+            status: novoStatus,
+            ultimaMovimentacao: new Date().toISOString().split('T')[0]
+          }
+        : p
+    ));
+
+    setMovimentandoProduto(null);
+  };
+
+  const confirmDelete = () => {
+    if (deletingProduto) {
+      setProdutos(prev => prev.filter(p => p.id !== deletingProduto.id));
+      toast({
+        title: "Sucesso",
+        description: "Produto excluído com sucesso!",
+      });
+    }
+    setDeletingProduto(null);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -156,11 +229,17 @@ export const Estoque = () => {
           <p className="text-muted-foreground">Gerencie produtos e insumos da clínica</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={() => setShowEntrada(true)}
+          >
             <Archive className="w-4 h-4 mr-2" />
             Entrada
           </Button>
-          <Button className="bg-gradient-primary shadow-elegant">
+          <Button 
+            className="bg-gradient-primary shadow-elegant"
+            onClick={() => setShowForm(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Novo Produto
           </Button>
@@ -343,15 +422,27 @@ export const Estoque = () => {
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleEditProduto(produto)}
+                    >
                       <Edit className="w-3 h-3 mr-1" />
                       Editar
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleMovimentarProduto(produto)}
+                    >
                       <Archive className="w-3 h-3 mr-1" />
                       Movimentar
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDeleteProduto(produto)}
+                    >
                       <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
@@ -361,6 +452,51 @@ export const Estoque = () => {
           ))}
         </CardContent>
       </Card>
+
+      {/* Modal do Formulário */}
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <ProdutoForm
+            produto={editingProduto}
+            onSave={handleSaveProduto}
+            onCancel={() => {
+              setShowForm(false);
+              setEditingProduto(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Entrada (reutiliza o modal de movimentação) */}
+      <MovimentarEstoqueModal
+        open={showEntrada}
+        onClose={() => setShowEntrada(false)}
+        produto={{ nome: 'Entrada em Lote', quantidade: 0 }}
+        onConfirm={() => {
+          setShowEntrada(false);
+          toast({
+            title: "Funcionalidade em desenvolvimento",
+            description: "A funcionalidade de entrada em lote será implementada em breve.",
+          });
+        }}
+      />
+
+      {/* Modal de Movimentação */}
+      <MovimentarEstoqueModal
+        open={!!movimentandoProduto}
+        onClose={() => setMovimentandoProduto(null)}
+        produto={movimentandoProduto}
+        onConfirm={handleConfirmMovimentacao}
+      />
+
+      {/* Modal de Confirmação de Exclusão */}
+      <ConfirmDeleteModal
+        open={!!deletingProduto}
+        onClose={() => setDeletingProduto(null)}
+        onConfirm={confirmDelete}
+        title="Excluir Produto"
+        description={`Tem certeza que deseja excluir o produto ${deletingProduto?.nome}? Esta ação não pode ser desfeita.`}
+      />
     </div>
   );
 };

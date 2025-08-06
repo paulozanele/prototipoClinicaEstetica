@@ -3,6 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useToast } from '@/hooks/use-toast';
+import { ClienteForm } from '@/components/forms/ClienteForm';
+import { ConfirmDeleteModal } from '@/components/modals/ConfirmDeleteModal';
 import { 
   Users, 
   Plus, 
@@ -14,15 +19,20 @@ import {
   Mail,
   Calendar,
   Star,
-  MapPin
+  MapPin,
+  Trash2
 } from 'lucide-react';
 
 export const Clientes = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('todos');
+  const [showForm, setShowForm] = useState(false);
+  const [editingCliente, setEditingCliente] = useState<any>(null);
+  const [deletingCliente, setDeletingCliente] = useState<any>(null);
 
-  // Mock data - em produção viria do localStorage
-  const clientes = [
+  // Mock data inicial
+  const initialClientes = [
     {
       id: 1,
       nome: 'Maria Silva',
@@ -81,6 +91,8 @@ export const Clientes = () => {
     }
   ];
 
+  const [clientes, setClientes] = useLocalStorage('clientes', initialClientes);
+
   const StatusBadge = ({ status }: { status: string }) => {
     const variants = {
       ativo: { variant: 'default' as const, color: 'bg-success' },
@@ -128,6 +140,38 @@ export const Clientes = () => {
     return matchesSearch && matchesFilter;
   });
 
+  const handleSaveCliente = (clienteData: any) => {
+    if (editingCliente) {
+      setClientes(prev => prev.map(c => 
+        c.id === editingCliente.id ? clienteData : c
+      ));
+    } else {
+      setClientes(prev => [...prev, clienteData]);
+    }
+    setShowForm(false);
+    setEditingCliente(null);
+  };
+
+  const handleEditCliente = (cliente: any) => {
+    setEditingCliente(cliente);
+    setShowForm(true);
+  };
+
+  const handleDeleteCliente = (cliente: any) => {
+    setDeletingCliente(cliente);
+  };
+
+  const confirmDelete = () => {
+    if (deletingCliente) {
+      setClientes(prev => prev.filter(c => c.id !== deletingCliente.id));
+      toast({
+        title: "Sucesso",
+        description: "Cliente excluído com sucesso!",
+      });
+    }
+    setDeletingCliente(null);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -136,7 +180,10 @@ export const Clientes = () => {
           <h1 className="text-3xl font-bold text-foreground">Clientes</h1>
           <p className="text-muted-foreground">Gerencie o cadastro de clientes</p>
         </div>
-        <Button className="bg-gradient-primary shadow-elegant">
+        <Button 
+          className="bg-gradient-primary shadow-elegant"
+          onClick={() => setShowForm(true)}
+        >
           <Plus className="w-4 h-4 mr-2" />
           Novo Cliente
         </Button>
@@ -324,9 +371,20 @@ export const Clientes = () => {
                       <Eye className="w-3 h-3 mr-1" />
                       Ver
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleEditCliente(cliente)}
+                    >
                       <Edit className="w-3 h-3 mr-1" />
                       Editar
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDeleteCliente(cliente)}
+                    >
+                      <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
                 </div>
@@ -335,6 +393,29 @@ export const Clientes = () => {
           ))}
         </CardContent>
       </Card>
+
+      {/* Modal do Formulário */}
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <ClienteForm
+            cliente={editingCliente}
+            onSave={handleSaveCliente}
+            onCancel={() => {
+              setShowForm(false);
+              setEditingCliente(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Confirmação de Exclusão */}
+      <ConfirmDeleteModal
+        open={!!deletingCliente}
+        onClose={() => setDeletingCliente(null)}
+        onConfirm={confirmDelete}
+        title="Excluir Cliente"
+        description={`Tem certeza que deseja excluir o cliente ${deletingCliente?.nome}? Esta ação não pode ser desfeita.`}
+      />
     </div>
   );
 };

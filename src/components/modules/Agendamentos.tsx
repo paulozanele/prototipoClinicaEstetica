@@ -3,6 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useToast } from '@/hooks/use-toast';
+import { AgendamentoForm } from '@/components/forms/AgendamentoForm';
+import { ConfirmDeleteModal } from '@/components/modals/ConfirmDeleteModal';
 import { 
   Calendar, 
   Clock, 
@@ -17,11 +22,15 @@ import {
 } from 'lucide-react';
 
 export const Agendamentos = () => {
+  const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [editingAgendamento, setEditingAgendamento] = useState<any>(null);
+  const [deletingAgendamento, setDeletingAgendamento] = useState<any>(null);
 
-  // Mock data - em produção viria do localStorage
-  const agendamentos = [
+  // Mock data inicial
+  const initialAgendamentos = [
     {
       id: 1,
       cliente: 'Maria Silva',
@@ -68,6 +77,8 @@ export const Agendamentos = () => {
     }
   ];
 
+  const [agendamentos, setAgendamentos] = useLocalStorage('agendamentos', initialAgendamentos);
+
   const StatusBadge = ({ status }: { status: string }) => {
     const variants = {
       confirmado: { variant: 'default' as const, icon: CheckCircle, color: 'text-success' },
@@ -91,6 +102,38 @@ export const Agendamentos = () => {
     agendamento.servico.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleSaveAgendamento = (agendamentoData: any) => {
+    if (editingAgendamento) {
+      setAgendamentos(prev => prev.map(a => 
+        a.id === editingAgendamento.id ? agendamentoData : a
+      ));
+    } else {
+      setAgendamentos(prev => [...prev, agendamentoData]);
+    }
+    setShowForm(false);
+    setEditingAgendamento(null);
+  };
+
+  const handleEditAgendamento = (agendamento: any) => {
+    setEditingAgendamento(agendamento);
+    setShowForm(true);
+  };
+
+  const handleDeleteAgendamento = (agendamento: any) => {
+    setDeletingAgendamento(agendamento);
+  };
+
+  const confirmDelete = () => {
+    if (deletingAgendamento) {
+      setAgendamentos(prev => prev.filter(a => a.id !== deletingAgendamento.id));
+      toast({
+        title: "Sucesso",
+        description: "Agendamento excluído com sucesso!",
+      });
+    }
+    setDeletingAgendamento(null);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -99,7 +142,10 @@ export const Agendamentos = () => {
           <h1 className="text-3xl font-bold text-foreground">Agendamentos</h1>
           <p className="text-muted-foreground">Gerencie os agendamentos da clínica</p>
         </div>
-        <Button className="bg-gradient-primary shadow-elegant">
+        <Button 
+          className="bg-gradient-primary shadow-elegant"
+          onClick={() => setShowForm(true)}
+        >
           <Plus className="w-4 h-4 mr-2" />
           Novo Agendamento
         </Button>
@@ -219,10 +265,18 @@ export const Agendamentos = () => {
                       </div>
                       
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditAgendamento(agendamento)}
+                        >
                           <Edit className="w-3 h-3" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDeleteAgendamento(agendamento)}
+                        >
                           <Trash2 className="w-3 h-3" />
                         </Button>
                       </div>
@@ -234,6 +288,29 @@ export const Agendamentos = () => {
           </Card>
         </div>
       </div>
+
+      {/* Modal do Formulário */}
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <AgendamentoForm
+            agendamento={editingAgendamento}
+            onSave={handleSaveAgendamento}
+            onCancel={() => {
+              setShowForm(false);
+              setEditingAgendamento(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Confirmação de Exclusão */}
+      <ConfirmDeleteModal
+        open={!!deletingAgendamento}
+        onClose={() => setDeletingAgendamento(null)}
+        onConfirm={confirmDelete}
+        title="Excluir Agendamento"
+        description={`Tem certeza que deseja excluir o agendamento de ${deletingAgendamento?.cliente}? Esta ação não pode ser desfeita.`}
+      />
     </div>
   );
 };
