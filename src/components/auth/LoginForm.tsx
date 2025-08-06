@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Sparkles, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface LoginFormProps {
@@ -81,15 +81,32 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen bg-gradient-background flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Doctor Photo */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/90 to-background/95 z-10"></div>
+        <img 
+          src="/lovable-uploads/d04558c5-472c-4e1e-b872-fd3bfdcb720d.png" 
+          alt="Dra. Nathália"
+          className="w-full h-full object-cover opacity-20"
+        />
+      </div>
+      
+      <div className="w-full max-w-md space-y-6 relative z-20">
         {/* Logo/Header */}
-        <div className="text-center space-y-2">
-          <div className="mx-auto w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-elegant">
-            <Sparkles className="w-8 h-8 text-primary-foreground" />
+        <div className="text-center space-y-4">
+          <div className="mx-auto w-24 h-24 p-2 bg-white rounded-2xl shadow-elegant">
+            <img 
+              src="/lovable-uploads/d1dbe018-dee2-47a7-8f96-fdfbfcd36857.png" 
+              alt="Dra. Nathália Mendonça - Estética Avançada"
+              className="w-full h-full object-contain"
+            />
           </div>
-          <h1 className="text-3xl font-bold text-foreground">Beleza Clinic</h1>
-          <p className="text-muted-foreground">Sistema de Gestão</p>
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold text-foreground">Dra. Nathália Mendonça</h1>
+            <p className="text-muted-foreground">Estética Avançada</p>
+            <p className="text-sm text-muted-foreground/80">Sistema de Gestão</p>
+          </div>
         </div>
 
         {/* Login Form */}
