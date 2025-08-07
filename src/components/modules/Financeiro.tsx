@@ -16,8 +16,10 @@ import {
   Receipt,
   Calendar,
   Download,
-  BarChart3
+  BarChart3,
+  Trash2
 } from 'lucide-react';
+import { ConfirmDeleteModal } from '@/components/modals/ConfirmDeleteModal';
 
 export const Financeiro = () => {
   const { toast } = useToast();
@@ -26,6 +28,10 @@ export const Financeiro = () => {
   const [filterTipo, setFilterTipo] = useState('todos');
   const [selectedTransacao, setSelectedTransacao] = useState<any>(null);
   const [showReciboModal, setShowReciboModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [transacaoToDelete, setTransacaoToDelete] = useState<any>(null);
+  const [showRelatorioModal, setShowRelatorioModal] = useState(false);
+  const [showNovaTransacaoModal, setShowNovaTransacaoModal] = useState(false);
 
   // Mock data - em produção viria do localStorage
   const transacoes = [
@@ -163,6 +169,33 @@ export const Financeiro = () => {
 
   const saldoLiquido = totalReceitas - totalDespesas;
 
+  const handleDeleteTransacao = () => {
+    if (transacaoToDelete) {
+      toast({
+        title: "Transação removida",
+        description: `A transação "${transacaoToDelete.descricao}" foi removida com sucesso.`,
+      });
+      setShowDeleteModal(false);
+      setTransacaoToDelete(null);
+    }
+  };
+
+  const handleRelatorio = () => {
+    setShowRelatorioModal(true);
+    toast({
+      title: "Relatório Financeiro",
+      description: "Gerando relatório das movimentações financeiras...",
+    });
+  };
+
+  const handleNovaTransacao = () => {
+    setShowNovaTransacaoModal(true);
+    toast({
+      title: "Nova Transação",
+      description: "Abrindo formulário para nova transação...",
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -172,23 +205,13 @@ export const Financeiro = () => {
           <p className="text-muted-foreground">Controle financeiro da clínica</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => {
-            toast({
-              title: "Relatório",
-              description: "Funcionalidade de relatório em desenvolvimento.",
-            });
-          }}>
+          <Button variant="outline" onClick={handleRelatorio}>
             <BarChart3 className="w-4 h-4 mr-2" />
             Relatório
           </Button>
           <Button 
             className="bg-gradient-primary shadow-elegant"
-            onClick={() => {
-              toast({
-                title: "Nova Transação",
-                description: "Funcionalidade de nova transação em desenvolvimento.",
-              });
-            }}
+            onClick={handleNovaTransacao}
           >
             <Plus className="w-4 h-4 mr-2" />
             Nova Transação
@@ -394,6 +417,17 @@ export const Financeiro = () => {
                           <Receipt className="w-3 h-3 mr-1" />
                           Recibo
                         </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => {
+                            setTransacaoToDelete(transacao);
+                            setShowDeleteModal(true);
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Remover
+                        </Button>
                       </div>
                 </div>
               </div>
@@ -410,6 +444,18 @@ export const Financeiro = () => {
           setSelectedTransacao(null);
         }}
         transacao={selectedTransacao}
+      />
+
+      {/* Modal de Confirmação de Exclusão */}
+      <ConfirmDeleteModal
+        open={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setTransacaoToDelete(null);
+        }}
+        onConfirm={handleDeleteTransacao}
+        title="Remover Transação"
+        description={`Tem certeza que deseja remover a transação "${transacaoToDelete?.descricao}"? Esta ação não pode ser desfeita.`}
       />
     </div>
   );
