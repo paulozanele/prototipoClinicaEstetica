@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ReciboModal } from '@/components/modals/ReciboModal';
+import { TransacaoModal } from '@/components/modals/TransacaoModal';
 import { 
   CreditCard, 
   Plus, 
@@ -23,16 +24,7 @@ import { ConfirmDeleteModal } from '@/components/modals/ConfirmDeleteModal';
 
 export const Financeiro = () => {
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterPeriodo, setFilterPeriodo] = useState('mes');
-  const [filterTipo, setFilterTipo] = useState('todos');
-  const [selectedTransacao, setSelectedTransacao] = useState<any>(null);
-  const [showReciboModal, setShowReciboModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [transacaoToDelete, setTransacaoToDelete] = useState<any>(null);
-  const [showRelatorioModal, setShowRelatorioModal] = useState(false);
-  const [showNovaTransacaoModal, setShowNovaTransacaoModal] = useState(false);
-
+  
   // Mock data - em produção viria do localStorage
   const transacoes = [
     {
@@ -109,6 +101,18 @@ export const Financeiro = () => {
     }
   ];
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterPeriodo, setFilterPeriodo] = useState('mes');
+  const [filterTipo, setFilterTipo] = useState('todos');
+  const [selectedTransacao, setSelectedTransacao] = useState<any>(null);
+  const [showReciboModal, setShowReciboModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [transacaoToDelete, setTransacaoToDelete] = useState<any>(null);
+  const [showRelatorioModal, setShowRelatorioModal] = useState(false);
+  const [showNovaTransacaoModal, setShowNovaTransacaoModal] = useState(false);
+  const [transacoesList, setTransacoesList] = useState(transacoes);
+
+
   const StatusBadge = ({ status }: { status: string }) => {
     const variants = {
       pago: { variant: 'default' as const, color: 'text-success', label: 'Pago' },
@@ -145,7 +149,7 @@ export const Financeiro = () => {
     return formas[forma as keyof typeof formas] || forma;
   };
 
-  const filteredTransacoes = transacoes.filter(transacao => {
+  const filteredTransacoes = transacoesList.filter(transacao => {
     const matchesSearch = transacao.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          transacao.cliente.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -155,15 +159,15 @@ export const Financeiro = () => {
   });
 
   // Cálculos financeiros
-  const totalReceitas = transacoes
+  const totalReceitas = transacoesList
     .filter(t => t.tipo === 'receita' && t.status === 'pago')
     .reduce((total, t) => total + t.valor, 0);
 
-  const totalDespesas = transacoes
+  const totalDespesas = transacoesList
     .filter(t => t.tipo === 'despesa' && t.status === 'pago')
     .reduce((total, t) => total + t.valor, 0);
 
-  const receitasPendentes = transacoes
+  const receitasPendentes = transacoesList
     .filter(t => t.tipo === 'receita' && t.status === 'pendente')
     .reduce((total, t) => total + t.valor, 0);
 
@@ -190,10 +194,11 @@ export const Financeiro = () => {
 
   const handleNovaTransacao = () => {
     setShowNovaTransacaoModal(true);
-    toast({
-      title: "Nova Transação",
-      description: "Abrindo formulário para nova transação...",
-    });
+  };
+
+  const handleSubmitTransacao = (novaTransacao: any) => {
+    setTransacoesList(prev => [novaTransacao, ...prev]);
+    setShowNovaTransacaoModal(false);
   };
 
   return (
@@ -456,6 +461,13 @@ export const Financeiro = () => {
         onConfirm={handleDeleteTransacao}
         title="Remover Transação"
         description={`Tem certeza que deseja remover a transação "${transacaoToDelete?.descricao}"? Esta ação não pode ser desfeita.`}
+      />
+
+      {/* Modal de Nova Transação */}
+      <TransacaoModal
+        open={showNovaTransacaoModal}
+        onClose={() => setShowNovaTransacaoModal(false)}
+        onSubmit={handleSubmitTransacao}
       />
     </div>
   );
