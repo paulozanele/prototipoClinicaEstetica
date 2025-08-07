@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { ReciboModal } from '@/components/modals/ReciboModal';
 import { 
   CreditCard, 
   Plus, 
@@ -13,14 +15,17 @@ import {
   DollarSign,
   Receipt,
   Calendar,
-  Eye,
-  Download
+  Download,
+  BarChart3
 } from 'lucide-react';
 
 export const Financeiro = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPeriodo, setFilterPeriodo] = useState('mes');
   const [filterTipo, setFilterTipo] = useState('todos');
+  const [selectedTransacao, setSelectedTransacao] = useState<any>(null);
+  const [showReciboModal, setShowReciboModal] = useState(false);
 
   // Mock data - em produção viria do localStorage
   const transacoes = [
@@ -167,11 +172,24 @@ export const Financeiro = () => {
           <p className="text-muted-foreground">Controle financeiro da clínica</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="w-4 h-4 mr-2" />
+          <Button variant="outline" onClick={() => {
+            toast({
+              title: "Relatório",
+              description: "Funcionalidade de relatório em desenvolvimento.",
+            });
+          }}>
+            <BarChart3 className="w-4 h-4 mr-2" />
             Relatório
           </Button>
-          <Button className="bg-gradient-primary shadow-elegant">
+          <Button 
+            className="bg-gradient-primary shadow-elegant"
+            onClick={() => {
+              toast({
+                title: "Nova Transação",
+                description: "Funcionalidade de nova transação em desenvolvimento.",
+              });
+            }}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Nova Transação
           </Button>
@@ -270,16 +288,15 @@ export const Financeiro = () => {
                 <option value="receita">Receitas</option>
                 <option value="despesa">Despesas</option>
               </select>
-              <select 
-                value={filterPeriodo}
-                onChange={(e) => setFilterPeriodo(e.target.value)}
-                className="px-3 py-2 border border-border rounded-md text-sm bg-background"
-              >
-                <option value="mes">Este mês</option>
-                <option value="semana">Esta semana</option>
-                <option value="hoje">Hoje</option>
-                <option value="ano">Este ano</option>
-              </select>
+              <Input
+                type="date"
+                className="w-auto"
+                onChange={(e) => {
+                  const selectedDate = e.target.value;
+                  setFilterPeriodo(selectedDate);
+                  console.log('Filtrar por data:', selectedDate);
+                }}
+              />
               <Button variant="outline" size="icon">
                 <Filter className="w-4 h-4" />
               </Button>
@@ -365,22 +382,35 @@ export const Financeiro = () => {
                     </p>
                   </div>
                   
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="w-3 h-3 mr-1" />
-                      Ver
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Receipt className="w-3 h-3 mr-1" />
-                      Recibo
-                    </Button>
-                  </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedTransacao(transacao);
+                            setShowReciboModal(true);
+                          }}
+                        >
+                          <Receipt className="w-3 h-3 mr-1" />
+                          Recibo
+                        </Button>
+                      </div>
                 </div>
               </div>
             </div>
           ))}
         </CardContent>
       </Card>
+
+      {/* Modal de Recibo */}
+      <ReciboModal
+        open={showReciboModal}
+        onClose={() => {
+          setShowReciboModal(false);
+          setSelectedTransacao(null);
+        }}
+        transacao={selectedTransacao}
+      />
     </div>
   );
 };

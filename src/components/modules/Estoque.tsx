@@ -228,22 +228,13 @@ export const Estoque = () => {
           <h1 className="text-3xl font-bold text-foreground">Controle de Estoque</h1>
           <p className="text-muted-foreground">Gerencie produtos e insumos da clínica</p>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            onClick={() => setShowEntrada(true)}
-          >
-            <Archive className="w-4 h-4 mr-2" />
-            Entrada
-          </Button>
-          <Button 
-            className="bg-gradient-primary shadow-elegant"
-            onClick={() => setShowForm(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Produto
-          </Button>
-        </div>
+        <Button 
+          className="bg-gradient-primary shadow-elegant"
+          onClick={() => setShowForm(true)}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Produto
+        </Button>
       </div>
 
       {/* Stats Cards */}

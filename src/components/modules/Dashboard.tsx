@@ -12,22 +12,36 @@ import {
 } from 'lucide-react';
 
 export const Dashboard = () => {
-  // Mock data - em produção viria do localStorage
+  // Obtém dados do localStorage para atualização dinâmica
+  const agendamentos = JSON.parse(localStorage.getItem('agendamentos') || '[]');
+  const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+  const produtos = JSON.parse(localStorage.getItem('produtos') || '[]');
+
+  const hoje = new Date().toISOString().split('T')[0];
+  
   const stats = {
-    agendamentosHoje: 12,
-    clientesAtivos: 245,
-    produtosBaixoEstoque: 5,
-    receitaMes: 15420,
-    proximosAgendamentos: [
-      { id: 1, cliente: 'Maria Silva', servico: 'Limpeza de Pele', horario: '09:00', status: 'confirmado' },
-      { id: 2, cliente: 'Ana Costa', servico: 'Botox', horario: '10:30', status: 'pendente' },
-      { id: 3, cliente: 'Julia Santos', servico: 'Peeling', horario: '14:00', status: 'confirmado' },
-    ],
-    alertasEstoque: [
-      { produto: 'Ácido Hialurônico', quantidade: 2, minimo: 5 },
-      { produto: 'Botox 100U', quantidade: 1, minimo: 3 },
-      { produto: 'Agulhas 30G', quantidade: 15, minimo: 50 },
-    ]
+    agendamentosHoje: agendamentos.filter((a: any) => a.data === hoje || !a.data).length,
+    clientesAtivos: clientes.filter((c: any) => c.status === 'ativo').length,
+    produtosBaixoEstoque: produtos.filter((p: any) => p.status === 'baixo' || p.status === 'critico').length,
+    receitaMes: 15420, // Pode ser calculado baseado em transações
+    proximosAgendamentos: agendamentos
+      .filter((a: any) => a.status === 'confirmado' || a.status === 'pendente')
+      .slice(0, 3)
+      .map((a: any) => ({
+        id: a.id,
+        cliente: a.cliente,
+        servico: a.servico,
+        horario: a.horario,
+        status: a.status
+      })),
+    alertasEstoque: produtos
+      .filter((p: any) => p.status === 'baixo' || p.status === 'critico')
+      .slice(0, 3)
+      .map((p: any) => ({
+        produto: p.nome,
+        quantidade: p.quantidade,
+        minimo: p.estoqueMinimo
+      }))
   };
 
   const StatusBadge = ({ status }: { status: string }) => {

@@ -19,6 +19,7 @@ export const AgendamentoForm = ({ agendamento, onSave, onCancel }: AgendamentoFo
     cliente: agendamento?.cliente || '',
     servico: agendamento?.servico || '',
     profissional: agendamento?.profissional || 'Dra. Ana',
+    data: agendamento?.data || new Date().toISOString().split('T')[0],
     horario: agendamento?.horario || '',
     duracao: agendamento?.duracao || 60,
     valor: agendamento?.valor || 0,
@@ -30,7 +31,7 @@ export const AgendamentoForm = ({ agendamento, onSave, onCancel }: AgendamentoFo
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.cliente || !formData.servico || !formData.horario) {
+    if (!formData.cliente || !formData.servico || !formData.data || !formData.horario) {
       toast({
         title: "Erro",
         description: "Preencha todos os campos obrigatórios.",
@@ -116,7 +117,17 @@ export const AgendamentoForm = ({ agendamento, onSave, onCancel }: AgendamentoFo
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor="data">Data *</Label>
+              <Input
+                id="data"
+                type="date"
+                value={formData.data}
+                onChange={(e) => setFormData({...formData, data: e.target.value})}
+                required
+              />
+            </div>
             <div>
               <Label htmlFor="horario">Horário *</Label>
               <Input

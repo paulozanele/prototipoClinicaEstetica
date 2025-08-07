@@ -367,10 +367,6 @@ export const Clientes = () => {
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="w-3 h-3 mr-1" />
-                      Ver
-                    </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
