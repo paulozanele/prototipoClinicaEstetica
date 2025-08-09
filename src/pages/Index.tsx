@@ -7,6 +7,9 @@ import { Agendamentos } from '@/components/modules/Agendamentos';
 import { Clientes } from '@/components/modules/Clientes';
 import { Estoque } from '@/components/modules/Estoque';
 import { Financeiro } from '@/components/modules/Financeiro';
+import { Marketing } from '@/components/modules/Marketing';
+import { Relatorios } from '@/components/modules/Relatorios';
+import { Configuracoes } from '@/components/modules/Configuracoes';
 
 const AdminPanel = () => {
   const [activeModule, setActiveModule] = useState('dashboard');
@@ -24,11 +27,11 @@ const AdminPanel = () => {
       case 'financeiro':
         return <Financeiro />;
       case 'marketing':
-        return <div className="p-8"><h1 className="text-2xl font-bold">Marketing em desenvolvimento...</h1></div>;
+        return <Marketing />;
       case 'relatorios':
-        return <div className="p-8"><h1 className="text-2xl font-bold">Relatórios em desenvolvimento...</h1></div>;
+        return <Relatorios />;
       case 'configuracoes':
-        return <div className="p-8"><h1 className="text-2xl font-bold">Configurações em desenvolvimento...</h1></div>;
+        return <Configuracoes />;
       default:
         return <Dashboard />;
     }
