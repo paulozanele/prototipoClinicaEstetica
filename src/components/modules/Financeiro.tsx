@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ReciboModal } from '@/components/modals/ReciboModal';
 import { TransacaoModal } from '@/components/modals/TransacaoModal';
+import { EditTransacaoModal } from '@/components/modals/EditTransacaoModal';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { 
   CreditCard, 
   Plus, 
@@ -18,15 +20,16 @@ import {
   Calendar,
   Download,
   BarChart3,
-  Trash2
+  Trash2,
+  Edit
 } from 'lucide-react';
 import { ConfirmDeleteModal } from '@/components/modals/ConfirmDeleteModal';
 
 export const Financeiro = () => {
   const { toast } = useToast();
   
-  // Mock data - em produção viria do localStorage
-  const transacoes = [
+  // Mock data inicial
+  const initialTransacoes = [
     {
       id: 1,
       tipo: 'receita',
@@ -110,7 +113,10 @@ export const Financeiro = () => {
   const [transacaoToDelete, setTransacaoToDelete] = useState<any>(null);
   const [showRelatorioModal, setShowRelatorioModal] = useState(false);
   const [showNovaTransacaoModal, setShowNovaTransacaoModal] = useState(false);
-  const [transacoesList, setTransacoesList] = useState(transacoes);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [transacaoToEdit, setTransacaoToEdit] = useState<any>(null);
+  const [transacoesList, setTransacoesList] = useLocalStorage('transacoes-financeiras', initialTransacoes);
+  const [receipts, setReceipts] = useLocalStorage('receipts-financeiros', {} as Record<number, string>);
 
 
   const StatusBadge = ({ status }: { status: string }) => {
@@ -175,6 +181,7 @@ export const Financeiro = () => {
 
   const handleDeleteTransacao = () => {
     if (transacaoToDelete) {
+      setTransacoesList(prev => prev.filter(t => t.id !== transacaoToDelete.id));
       toast({
         title: "Transação removida",
         description: `A transação "${transacaoToDelete.descricao}" foi removida com sucesso.`,
@@ -182,6 +189,19 @@ export const Financeiro = () => {
       setShowDeleteModal(false);
       setTransacaoToDelete(null);
     }
+  };
+
+  const handleEditTransacao = (transacao: any) => {
+    setTransacaoToEdit(transacao);
+    setShowEditModal(true);
+  };
+
+  const handleSubmitEditTransacao = (updatedTransacao: any) => {
+    setTransacoesList(prev => 
+      prev.map(t => t.id === updatedTransacao.id ? updatedTransacao : t)
+    );
+    setShowEditModal(false);
+    setTransacaoToEdit(null);
   };
 
   const handleRelatorio = () => {
@@ -197,8 +217,23 @@ export const Financeiro = () => {
   };
 
   const handleSubmitTransacao = (novaTransacao: any) => {
-    setTransacoesList(prev => [novaTransacao, ...prev]);
+    const transacaoComId = {
+      ...novaTransacao,
+      id: Date.now() // ID único baseado no timestamp
+    };
+    setTransacoesList(prev => [transacaoComId, ...prev]);
     setShowNovaTransacaoModal(false);
+  };
+
+  const handleAttachReceipt = (transacaoId: number, fileUrl: string) => {
+    setReceipts(prev => ({
+      ...prev,
+      [transacaoId]: fileUrl
+    }));
+  };
+
+  const hasReceipt = (transacaoId: number) => {
+    return receipts[transacaoId] ? true : false;
   };
 
   return (
@@ -412,7 +447,7 @@ export const Financeiro = () => {
                   
                       <div className="flex gap-2">
                         <Button 
-                          variant="outline" 
+                          variant={hasReceipt(transacao.id) ? "default" : "outline"} 
                           size="sm"
                           onClick={() => {
                             setSelectedTransacao(transacao);
@@ -420,7 +455,15 @@ export const Financeiro = () => {
                           }}
                         >
                           <Receipt className="w-3 h-3 mr-1" />
-                          Recibo
+                          {hasReceipt(transacao.id) ? "Ver Recibo" : "Anexar"}
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditTransacao(transacao)}
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Editar
                         </Button>
                         <Button 
                           variant="destructive" 
@@ -449,6 +492,8 @@ export const Financeiro = () => {
           setSelectedTransacao(null);
         }}
         transacao={selectedTransacao}
+        onAttach={handleAttachReceipt}
+        existingReceipt={selectedTransacao ? receipts[selectedTransacao.id] : undefined}
       />
 
       {/* Modal de Confirmação de Exclusão */}
@@ -468,6 +513,17 @@ export const Financeiro = () => {
         open={showNovaTransacaoModal}
         onClose={() => setShowNovaTransacaoModal(false)}
         onSubmit={handleSubmitTransacao}
+      />
+
+      {/* Modal de Editar Transação */}
+      <EditTransacaoModal
+        open={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setTransacaoToEdit(null);
+        }}
+        onSubmit={handleSubmitEditTransacao}
+        transacao={transacaoToEdit}
       />
     </div>
   );

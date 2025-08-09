@@ -10,9 +10,11 @@ interface ReciboModalProps {
   open: boolean;
   onClose: () => void;
   transacao?: any;
+  onAttach?: (transacaoId: number, fileUrl: string) => void;
+  existingReceipt?: string;
 }
 
-export const ReciboModal = ({ open, onClose, transacao }: ReciboModalProps) => {
+export const ReciboModal = ({ open, onClose, transacao, onAttach, existingReceipt }: ReciboModalProps) => {
   const { toast } = useToast();
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>('');
@@ -54,8 +56,14 @@ export const ReciboModal = ({ open, onClose, transacao }: ReciboModalProps) => {
       return;
     }
 
-    // Simula o salvamento do recibo
-    // Em uma aplicação real, isso enviaria o arquivo para o servidor
+    // Criar URL do arquivo para armazenamento local
+    const fileUrl = URL.createObjectURL(arquivo);
+    
+    // Chamar callback para anexar o recibo
+    if (transacao && onAttach) {
+      onAttach(transacao.id, fileUrl);
+    }
+    
     toast({
       title: "Sucesso",
       description: "Recibo anexado com sucesso!",
@@ -86,6 +94,22 @@ export const ReciboModal = ({ open, onClose, transacao }: ReciboModalProps) => {
               <p className="font-medium">{transacao.descricao}</p>
               <p className="text-sm text-muted-foreground">
                 R$ {transacao.valor?.toLocaleString('pt-BR')}
+              </p>
+            </div>
+          )}
+
+          {/* Mostrar recibo existente se houver */}
+          {existingReceipt && (
+            <div className="p-3 bg-success/10 border border-success/20 rounded-lg">
+              <p className="text-sm text-success font-medium mb-2">Recibo já anexado:</p>
+              <img 
+                src={existingReceipt} 
+                alt="Recibo anexado" 
+                className="max-w-full h-32 object-contain rounded border cursor-pointer"
+                onClick={() => window.open(existingReceipt, '_blank')}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Clique na imagem para visualizar em tamanho completo
               </p>
             </div>
           )}
