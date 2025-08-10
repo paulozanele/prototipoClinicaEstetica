@@ -63,6 +63,7 @@ export const Configuracoes = () => {
 
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [novaSenha, setNovaSenha] = useState('');
+  const [arquivoImport, setArquivoImport] = useState<File | null>(null);
 
   const handleSalvar = () => {
     toast({
@@ -72,25 +73,142 @@ export const Configuracoes = () => {
   };
 
   const handleExportarDados = () => {
-    toast({
-      title: "Exportação iniciada",
-      description: "Seus dados estão sendo preparados para download..."
-    });
+    try {
+      // Coleta todos os dados do localStorage
+      const dadosParaExportar = {
+        configuracoes,
+        transacoes: JSON.parse(localStorage.getItem('transacoes') || '[]'),
+        clientes: JSON.parse(localStorage.getItem('clientes') || '[]'),
+        produtos: JSON.parse(localStorage.getItem('produtos') || '[]'),
+        agendamentos: JSON.parse(localStorage.getItem('agendamentos') || '[]'),
+        dataExportacao: new Date().toISOString()
+      };
+
+      // Cria o arquivo para download
+      const dataStr = JSON.stringify(dadosParaExportar, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `backup-dados-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Dados exportados",
+        description: "Backup dos dados baixado com sucesso!"
+      });
+    } catch (error) {
+      toast({
+        title: "Erro na exportação",
+        description: "Ocorreu um erro ao exportar os dados.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSelecionarArquivo = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const arquivo = event.target.files?.[0];
+    if (arquivo) {
+      setArquivoImport(arquivo);
+    }
   };
 
   const handleImportarDados = () => {
-    toast({
-      title: "Importação iniciada",
-      description: "Processando arquivo de dados..."
-    });
+    if (!arquivoImport) {
+      // Abre o seletor de arquivos
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = (e) => {
+        const arquivo = (e.target as HTMLInputElement).files?.[0];
+        if (arquivo) {
+          processarArquivoImport(arquivo);
+        }
+      };
+      input.click();
+    } else {
+      processarArquivoImport(arquivoImport);
+    }
+  };
+
+  const processarArquivoImport = (arquivo: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const dadosImportados = JSON.parse(e.target?.result as string);
+        
+        // Valida a estrutura dos dados
+        if (dadosImportados.configuracoes) {
+          setConfiguracoes(dadosImportados.configuracoes);
+        }
+        if (dadosImportados.transacoes) {
+          localStorage.setItem('transacoes', JSON.stringify(dadosImportados.transacoes));
+        }
+        if (dadosImportados.clientes) {
+          localStorage.setItem('clientes', JSON.stringify(dadosImportados.clientes));
+        }
+        if (dadosImportados.produtos) {
+          localStorage.setItem('produtos', JSON.stringify(dadosImportados.produtos));
+        }
+        if (dadosImportados.agendamentos) {
+          localStorage.setItem('agendamentos', JSON.stringify(dadosImportados.agendamentos));
+        }
+
+        toast({
+          title: "Dados importados",
+          description: "Dados restaurados com sucesso! Recarregue a página para ver as alterações."
+        });
+        setArquivoImport(null);
+      } catch (error) {
+        toast({
+          title: "Erro na importação",
+          description: "Arquivo inválido ou corrompido.",
+          variant: "destructive"
+        });
+      }
+    };
+    reader.readAsText(arquivo);
   };
 
   const handleResetarDados = () => {
-    toast({
-      title: "Dados resetados",
-      description: "Todas as configurações foram restauradas para o padrão.",
-      variant: "destructive"
-    });
+    if (confirm('Esta ação irá deletar todos os dados. Tem certeza?')) {
+      localStorage.clear();
+      setConfiguracoes({
+        nome: 'Dra. Nathália',
+        email: 'dra.nathalia@email.com',
+        telefone: '(11) 99999-9999',
+        endereco: 'Rua das Flores, 123',
+        bio: 'Profissional dedicada ao bem-estar dos pacientes',
+        emailNotificacoes: true,
+        smsNotificacoes: false,
+        whatsappNotificacoes: true,
+        lembreteAgendamentos: true,
+        alertasEstoque: true,
+        tema: 'light',
+        idioma: 'pt-br',
+        timezone: 'America/Sao_Paulo',
+        moedaPadrao: 'BRL',
+        formatoData: 'DD/MM/YYYY',
+        autenticacaoDoisFatores: false,
+        tempoSessao: 60,
+        backupAutomatico: true,
+        nomeEmpresa: 'Clínica Dra. Nathália',
+        cnpj: '12.345.678/0001-90',
+        telefoneEmpresa: '(11) 3333-4444',
+        enderecoEmpresa: 'Av. Principal, 456',
+        horarioFuncionamento: '08:00 - 18:00'
+      });
+
+      toast({
+        title: "Dados resetados",
+        description: "Todas as configurações foram restauradas para o padrão.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
