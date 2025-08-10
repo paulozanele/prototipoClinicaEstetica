@@ -62,6 +62,8 @@ export const Relatorios = () => {
   });
 
   const handleGerarRelatorio = (tipo: string) => {
+    console.log('Gerando relatório do tipo:', tipo); // Debug
+    
     const novoRelatorio: Relatorio = {
       id: Date.now().toString(),
       nome: `Relatório ${tipo.charAt(0).toUpperCase() + tipo.slice(1)} - ${new Date().toLocaleDateString()}`,
@@ -71,11 +73,11 @@ export const Relatorios = () => {
       data: new Date().toISOString().split('T')[0]
     };
 
-    setRelatorios([novoRelatorio, ...relatorios]);
+    setRelatorios(prev => [novoRelatorio, ...prev]);
     
     toast({
       title: "Gerando relatório",
-      description: "Seu relatório está sendo processado..."
+      description: `Processando relatório de ${tipo}...`
     });
 
     // Simular processamento e gerar relatório real
@@ -88,7 +90,7 @@ export const Relatorios = () => {
       
       toast({
         title: "Relatório gerado",
-        description: "Seu relatório foi gerado com sucesso!"
+        description: `Relatório de ${tipo} foi gerado com sucesso!`
       });
     }, 2000);
   };
