@@ -73,7 +73,12 @@ export const Relatorios = () => {
 
     setRelatorios([novoRelatorio, ...relatorios]);
     
-    // Simular processamento
+    toast({
+      title: "Gerando relatório",
+      description: "Seu relatório está sendo processado..."
+    });
+
+    // Simular processamento e gerar relatório real
     setTimeout(() => {
       setRelatorios(prev => prev.map(rel => 
         rel.id === novoRelatorio.id 
@@ -85,19 +90,93 @@ export const Relatorios = () => {
         title: "Relatório gerado",
         description: "Seu relatório foi gerado com sucesso!"
       });
-    }, 3000);
-
-    toast({
-      title: "Gerando relatório",
-      description: "Seu relatório está sendo processado..."
-    });
+    }, 2000);
   };
 
   const handleDownload = (relatorio: Relatorio) => {
-    toast({
-      title: "Download iniciado",
-      description: `Baixando ${relatorio.nome}...`
-    });
+    try {
+      let dadosRelatorio = {};
+      
+      // Obter dados baseado no tipo do relatório
+      switch (relatorio.tipo) {
+        case 'financeiro':
+          dadosRelatorio = {
+            tipo: 'Relatório Financeiro',
+            periodo: relatorio.periodo,
+            transacoes: JSON.parse(localStorage.getItem('transacoes') || '[]'),
+            resumo: {
+              totalReceitas: 'R$ 15.231,00',
+              totalDespesas: 'R$ 8.450,00',
+              lucroLiquido: 'R$ 6.781,00',
+              crescimento: '+20.1%'
+            }
+          };
+          break;
+        case 'clientes':
+          dadosRelatorio = {
+            tipo: 'Relatório de Clientes',
+            periodo: relatorio.periodo,
+            clientes: JSON.parse(localStorage.getItem('clientes') || '[]'),
+            resumo: {
+              totalClientes: 42,
+              novosClientes: 12,
+              clientesAtivos: 38,
+              taxaRetencao: '85%'
+            }
+          };
+          break;
+        case 'estoque':
+          dadosRelatorio = {
+            tipo: 'Relatório de Estoque',
+            periodo: relatorio.periodo,
+            produtos: JSON.parse(localStorage.getItem('produtos') || '[]'),
+            resumo: {
+              totalProdutos: 89,
+              produtosBaixoEstoque: 23,
+              valorTotalEstoque: 'R$ 12.450,00',
+              giroEstoque: '3.2x'
+            }
+          };
+          break;
+        case 'agendamentos':
+          dadosRelatorio = {
+            tipo: 'Relatório de Agendamentos',
+            periodo: relatorio.periodo,
+            agendamentos: JSON.parse(localStorage.getItem('agendamentos') || '[]'),
+            resumo: {
+              totalAgendamentos: 128,
+              consulasRealizadas: 115,
+              cancelamentos: 13,
+              taxaComparecimento: '89.8%'
+            }
+          };
+          break;
+      }
+
+      // Gerar arquivo PDF simulado (na verdade será JSON)
+      const dataStr = JSON.stringify(dadosRelatorio, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${relatorio.nome.toLowerCase().replace(/\s+/g, '-')}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Download concluído",
+        description: `Relatório ${relatorio.nome} baixado com sucesso!`
+      });
+    } catch (error) {
+      toast({
+        title: "Erro no download",
+        description: "Ocorreu um erro ao baixar o relatório.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {
