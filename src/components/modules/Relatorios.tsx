@@ -16,6 +16,7 @@ import {
   Filter
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import jsPDF from 'jspdf';
 
 interface Relatorio {
   id: string;
@@ -97,85 +98,169 @@ export const Relatorios = () => {
 
   const handleDownload = (relatorio: Relatorio) => {
     try {
-      let dadosRelatorio = {};
+      const pdf = new jsPDF();
+      
+      // Configurações do PDF
+      pdf.setFontSize(20);
+      pdf.text('Clínica Dra. Nathália', 20, 30);
+      
+      pdf.setFontSize(16);
+      pdf.text(relatorio.nome, 20, 50);
+      
+      pdf.setFontSize(12);
+      pdf.text(`Período: ${relatorio.periodo}`, 20, 70);
+      pdf.text(`Data de Geração: ${new Date().toLocaleDateString()}`, 20, 80);
+      
+      let yPosition = 100;
       
       // Obter dados baseado no tipo do relatório
       switch (relatorio.tipo) {
         case 'financeiro':
-          dadosRelatorio = {
-            tipo: 'Relatório Financeiro',
-            periodo: relatorio.periodo,
-            transacoes: JSON.parse(localStorage.getItem('transacoes') || '[]'),
-            resumo: {
-              totalReceitas: 'R$ 15.231,00',
-              totalDespesas: 'R$ 8.450,00',
-              lucroLiquido: 'R$ 6.781,00',
-              crescimento: '+20.1%'
-            }
-          };
+          pdf.text('RELATÓRIO FINANCEIRO', 20, yPosition);
+          yPosition += 20;
+          
+          pdf.text('RESUMO EXECUTIVO:', 20, yPosition);
+          yPosition += 15;
+          pdf.text('• Total de Receitas: R$ 15.231,00', 25, yPosition);
+          yPosition += 10;
+          pdf.text('• Total de Despesas: R$ 8.450,00', 25, yPosition);
+          yPosition += 10;
+          pdf.text('• Lucro Líquido: R$ 6.781,00', 25, yPosition);
+          yPosition += 10;
+          pdf.text('• Crescimento: +20.1%', 25, yPosition);
+          yPosition += 20;
+          
+          // Adicionar transações
+          const transacoes = JSON.parse(localStorage.getItem('transacoes') || '[]');
+          if (transacoes.length > 0) {
+            pdf.text('TRANSAÇÕES:', 20, yPosition);
+            yPosition += 15;
+            
+            transacoes.slice(0, 10).forEach((transacao: any, index: number) => {
+              const texto = `${index + 1}. ${transacao.descricao} - R$ ${transacao.valor} (${transacao.tipo})`;
+              pdf.text(texto, 25, yPosition);
+              yPosition += 10;
+              
+              if (yPosition > 250) {
+                pdf.addPage();
+                yPosition = 30;
+              }
+            });
+          }
           break;
+          
         case 'clientes':
-          dadosRelatorio = {
-            tipo: 'Relatório de Clientes',
-            periodo: relatorio.periodo,
-            clientes: JSON.parse(localStorage.getItem('clientes') || '[]'),
-            resumo: {
-              totalClientes: 42,
-              novosClientes: 12,
-              clientesAtivos: 38,
-              taxaRetencao: '85%'
-            }
-          };
+          pdf.text('RELATÓRIO DE CLIENTES', 20, yPosition);
+          yPosition += 20;
+          
+          pdf.text('RESUMO EXECUTIVO:', 20, yPosition);
+          yPosition += 15;
+          pdf.text('• Total de Clientes: 42', 25, yPosition);
+          yPosition += 10;
+          pdf.text('• Novos Clientes: 12', 25, yPosition);
+          yPosition += 10;
+          pdf.text('• Clientes Ativos: 38', 25, yPosition);
+          yPosition += 10;
+          pdf.text('• Taxa de Retenção: 85%', 25, yPosition);
+          yPosition += 20;
+          
+          const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+          if (clientes.length > 0) {
+            pdf.text('LISTA DE CLIENTES:', 20, yPosition);
+            yPosition += 15;
+            
+            clientes.slice(0, 15).forEach((cliente: any, index: number) => {
+              const texto = `${index + 1}. ${cliente.nome} - ${cliente.telefone}`;
+              pdf.text(texto, 25, yPosition);
+              yPosition += 10;
+              
+              if (yPosition > 250) {
+                pdf.addPage();
+                yPosition = 30;
+              }
+            });
+          }
           break;
+          
         case 'estoque':
-          dadosRelatorio = {
-            tipo: 'Relatório de Estoque',
-            periodo: relatorio.periodo,
-            produtos: JSON.parse(localStorage.getItem('produtos') || '[]'),
-            resumo: {
-              totalProdutos: 89,
-              produtosBaixoEstoque: 23,
-              valorTotalEstoque: 'R$ 12.450,00',
-              giroEstoque: '3.2x'
-            }
-          };
+          pdf.text('RELATÓRIO DE ESTOQUE', 20, yPosition);
+          yPosition += 20;
+          
+          pdf.text('RESUMO EXECUTIVO:', 20, yPosition);
+          yPosition += 15;
+          pdf.text('• Total de Produtos: 89', 25, yPosition);
+          yPosition += 10;
+          pdf.text('• Produtos com Baixo Estoque: 23', 25, yPosition);
+          yPosition += 10;
+          pdf.text('• Valor Total do Estoque: R$ 12.450,00', 25, yPosition);
+          yPosition += 10;
+          pdf.text('• Giro de Estoque: 3.2x', 25, yPosition);
+          yPosition += 20;
+          
+          const produtos = JSON.parse(localStorage.getItem('produtos') || '[]');
+          if (produtos.length > 0) {
+            pdf.text('PRODUTOS EM ESTOQUE:', 20, yPosition);
+            yPosition += 15;
+            
+            produtos.slice(0, 15).forEach((produto: any, index: number) => {
+              const texto = `${index + 1}. ${produto.nome} - Qtd: ${produto.quantidade} - R$ ${produto.preco}`;
+              pdf.text(texto, 25, yPosition);
+              yPosition += 10;
+              
+              if (yPosition > 250) {
+                pdf.addPage();
+                yPosition = 30;
+              }
+            });
+          }
           break;
+          
         case 'agendamentos':
-          dadosRelatorio = {
-            tipo: 'Relatório de Agendamentos',
-            periodo: relatorio.periodo,
-            agendamentos: JSON.parse(localStorage.getItem('agendamentos') || '[]'),
-            resumo: {
-              totalAgendamentos: 128,
-              consulasRealizadas: 115,
-              cancelamentos: 13,
-              taxaComparecimento: '89.8%'
-            }
-          };
+          pdf.text('RELATÓRIO DE AGENDAMENTOS', 20, yPosition);
+          yPosition += 20;
+          
+          pdf.text('RESUMO EXECUTIVO:', 20, yPosition);
+          yPosition += 15;
+          pdf.text('• Total de Agendamentos: 128', 25, yPosition);
+          yPosition += 10;
+          pdf.text('• Consultas Realizadas: 115', 25, yPosition);
+          yPosition += 10;
+          pdf.text('• Cancelamentos: 13', 25, yPosition);
+          yPosition += 10;
+          pdf.text('• Taxa de Comparecimento: 89.8%', 25, yPosition);
+          yPosition += 20;
+          
+          const agendamentos = JSON.parse(localStorage.getItem('agendamentos') || '[]');
+          if (agendamentos.length > 0) {
+            pdf.text('AGENDAMENTOS:', 20, yPosition);
+            yPosition += 15;
+            
+            agendamentos.slice(0, 15).forEach((agendamento: any, index: number) => {
+              const texto = `${index + 1}. ${agendamento.cliente} - ${agendamento.data} ${agendamento.horario}`;
+              pdf.text(texto, 25, yPosition);
+              yPosition += 10;
+              
+              if (yPosition > 250) {
+                pdf.addPage();
+                yPosition = 30;
+              }
+            });
+          }
           break;
       }
-
-      // Gerar arquivo PDF simulado (na verdade será JSON)
-      const dataStr = JSON.stringify(dadosRelatorio, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
       
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${relatorio.nome.toLowerCase().replace(/\s+/g, '-')}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Salvar o PDF
+      const nomeArquivo = `${relatorio.nome.toLowerCase().replace(/\s+/g, '-')}.pdf`;
+      pdf.save(nomeArquivo);
 
       toast({
         title: "Download concluído",
-        description: `Relatório ${relatorio.nome} baixado com sucesso!`
+        description: `Relatório ${relatorio.nome} baixado em PDF com sucesso!`
       });
     } catch (error) {
       toast({
         title: "Erro no download",
-        description: "Ocorreu um erro ao baixar o relatório.",
+        description: "Ocorreu um erro ao gerar o PDF.",
         variant: "destructive"
       });
     }
