@@ -15,15 +15,15 @@ export const EditTransacaoForm = ({ onClose, onSubmit, transacao }: EditTransaca
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
-    tipo: transacao.tipo || 'receita',
-    descricao: transacao.descricao || '',
-    valor: transacao.valor || '',
-    cliente: transacao.cliente || '',
-    formaPagamento: transacao.formaPagamento || 'cartao',
-    data: transacao.data || '',
-    categoria: transacao.categoria || 'servico',
-    status: transacao.status || 'pendente',
-    observacoes: transacao.observacoes || ''
+    tipo: transacao?.tipo || 'receita',
+    descricao: transacao?.descricao || '',
+    valor: transacao?.valor || '',
+    cliente: transacao?.cliente || '',
+    formaPagamento: transacao?.formaPagamento || 'cartao',
+    data: transacao?.data || '',
+    categoria: transacao?.categoria || 'servico',
+    status: transacao?.status || 'pendente',
+    observacoes: transacao?.observacoes || ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
